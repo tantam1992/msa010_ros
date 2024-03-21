@@ -1,0 +1,17 @@
+<launch>
+
+	<node pkg="tf" type="static_transform_publisher" name="dep_cam_front_link_to_base_link" 
+		args="0.2 0 0.34 0.9914449 0 -0.1305262 0 base_link dep_cam_front_link 100" />
+
+	<node pkg="tf" type="static_transform_publisher" name="dep_cam_laser_link_to_base_link" 
+		args="0 0 0.34 0 0 0 1 base_link dep_cam_laser_link 100" />
+	
+	<group ns="dep_cam_front">
+		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver" output="screen">
+			<param name="device" value="/dev/depth_camera" />
+			<param name="frame_id" value="dep_cam_front_link" />
+		</node>
+		<node pkg="msa010_ros" type="depth_image_to_point_cloud_node" name="depth_image_to_point_cloud_node" output="screen" />
+	</group>
+
+</launch>
