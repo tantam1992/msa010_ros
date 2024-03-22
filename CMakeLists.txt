@@ -6,6 +6,7 @@ project(msa010_ros)
 
 ## Find dependencies
 find_package(catkin REQUIRED COMPONENTS
+  dynamic_reconfigure
   roscpp
   rospy
   std_msgs
@@ -14,7 +15,10 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   tf2_ros
   tf
+  image_geometry
 )
+
+generate_dynamic_reconfigure_options(cfg/PCLFilter.cfg)
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
@@ -44,6 +48,7 @@ include_directories(
 
 ## Declare a C++ executable
 add_executable(point_cloud_processing_node src/pcl_filter.cpp)
+add_dependencies(point_cloud_processing_node ${PROJECT_NAME}_gencfg)
 target_link_libraries(point_cloud_processing_node
   ${catkin_LIBRARIES}
   pcl_common
@@ -56,8 +61,11 @@ target_link_libraries(depth_image_to_point_cloud_node
   ${catkin_LIBRARIES}
 )
 
-## Declare a Python executable
-
+add_executable(cliff_detector_node src/cliff_detector.cpp)
+target_link_libraries(cliff_detector_node
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBS}
+)
 
 #############
 ## Install ##

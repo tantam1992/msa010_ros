@@ -21,6 +21,7 @@
   <depend>cv_bridge</depend>
   <depend>tf2_ros</depend>
   <depend>tf</depend>
+  <depend>image_geometry</depend>
 
   <!-- <export>  </export> -->
 </package>
