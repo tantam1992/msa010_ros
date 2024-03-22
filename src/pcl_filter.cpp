@@ -1,4 +1,8 @@
 #include <ros/ros.h>
+
+#include <dynamic_reconfigure/server.h>
+#include <msa010_ros/PCLFilterConfig.h>
+
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/statistical_outlier_removal.h>
@@ -35,8 +39,21 @@ public:
     ror_.setRadiusSearch(RadiusSearch);
     ror_.setMinNeighborsInRadius(MinNeighborsInRadius);
 
+    server_cb_ = boost::bind(&PointCloudProcessor::reconfigureCallback, this, _1, _2);
+    server_.setCallback(server_cb_);
+
     // Initialize the point cloud object
     cloud_.reset(new pcl::PointCloud<pcl::PointXYZ>);
+  }
+
+
+  void reconfigureCallback(msa010_ros::PCLFilterConfig& config, uint32_t level) {
+    // Update filter parameters based on dynamic reconfigure values
+    voxel_.setLeafSize(config.LeafSize, config.LeafSize, config.LeafSize);
+    sor_.setMeanK(config.MeanK);
+    sor_.setStddevMulThresh(config.StddevMulThresh);
+    ror_.setRadiusSearch(config.RadiusSearch);
+    ror_.setMinNeighborsInRadius(config.MinNeighborsInRadius);
   }
 
 
@@ -88,6 +105,9 @@ private:
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_;
 
   sensor_msgs::PointCloud2 filtered_msg_;
+
+  dynamic_reconfigure::Server<msa010_ros::PCLFilterConfig> server_;
+  dynamic_reconfigure::Server<msa010_ros::PCLFilterConfig>::CallbackType server_cb_;
 };
 
 
