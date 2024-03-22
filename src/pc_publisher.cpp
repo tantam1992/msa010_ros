@@ -55,7 +55,7 @@ public:
   void depthImageCallback(const sensor_msgs::Image::ConstPtr& msg)
   {
     if (!cam_info_flag) {
-      ROS_INFO("No Camera Info Received.");
+      ROS_WARN("No Camera Info Received.");
       return;
     }
 

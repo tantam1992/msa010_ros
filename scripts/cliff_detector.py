@@ -11,10 +11,10 @@ import numpy as np
 import math
 
 
-class ImageSubscriber:
+class cliffDetector:
     def __init__(self):
-        self.img_topic = rospy.get_param("cliff_detector/img_topic", "sipeed_tof_ms_a010/depth/image_raw")
-        self.info_topic = rospy.get_param("cliff_detector/info_topic", "sipeed_tof_ms_a010/depth/camera_info")
+        self.img_topic = rospy.get_param("cliff_detector/img_topic", "depth/image_raw")
+        self.info_topic = rospy.get_param("cliff_detector/info_topic", "depth/camera_info")
         self.frame_id = rospy.get_param("cliff_detector/frame_id", "dep_cam_front_link")
         
         self.cam_height = rospy.get_param("cliff_detector/cam_height", 0.3)
@@ -240,8 +240,8 @@ class ImageSubscriber:
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('image_subscriber', anonymous=True)
-        image_subscriber = ImageSubscriber()
+        rospy.init_node('cliff_detector', anonymous=True)
+        cliff_detector = cliffDetector()
         rospy.loginfo("Start Cliff Detector.")
         rospy.spin()
     except rospy.ROSInterruptException:
