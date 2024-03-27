@@ -74,9 +74,9 @@ public:
         float dst = std::pow((((float)msg->data[j * (pcmsg.width) + i]) / 5.1), 2) / 1000;
 
         if (((int)msg->data[j * (pcmsg.width) + i]) == 255) {
-          float x = std::numeric_limits<float>::quiet_NaN();
-          float y = std::numeric_limits<float>::quiet_NaN();
-          float z = std::numeric_limits<float>::quiet_NaN();
+          float x = std::numeric_limits<float>::infinity();
+          float y = std::numeric_limits<float>::infinity();
+          float z = std::numeric_limits<float>::infinity();
           *((float *)(ptr + 0)) = x;
           *((float *)(ptr + 4)) = y;
           *((float *)(ptr + 8)) = z;
