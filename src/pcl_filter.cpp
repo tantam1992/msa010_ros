@@ -7,6 +7,8 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/filters/radius_outlier_removal.h>
+#include <pcl/segmentation/sac_segmentation.h>
+
 #include <sensor_msgs/PointCloud2.h>
 
 #include <string>
@@ -31,6 +33,9 @@ public:
 
     // Create a publisher for the processed PointCloud2 message
     processed_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("processed_point_cloud", 1);
+
+    // ground_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("ground", 1);
+    // non_ground_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("non_ground", 1);
 
     // Initialize filters
     voxel_.setLeafSize(LeafSize, LeafSize, LeafSize);
@@ -63,10 +68,56 @@ public:
     pcl::fromROSMsg(*msg, *cloud_);
     pcl::removeNaNFromPointCloud(*cloud_, *cloud_, indices_);
 
+    /*
+    {
+    // Estimate the ground plane model using RANSAC
+    pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+    pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+    pcl::SACSegmentation<pcl::PointXYZ> seg;
+    seg.setOptimizeCoefficients(true);
+    seg.setModelType(pcl::SACMODEL_PLANE);
+    seg.setMethodType(pcl::SAC_RANSAC);
+    seg.setMaxIterations(50);
+    seg.setDistanceThreshold(0.01); // Set the distance threshold according to your requirements
+    seg.setInputCloud(cloud_);
+    seg.segment(*inliers, *coefficients);
+
+    // Create separate point clouds to store the ground and non-ground points
+    pcl::PointCloud<pcl::PointXYZ>::Ptr ground_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr non_ground_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+
+    // Iterate over each point in the cloud and assign it to the ground or non-ground point cloud
+    for (size_t i = 0; i < cloud_->size(); ++i) {
+      if (std::find(inliers->indices.begin(), inliers->indices.end(), i) != inliers->indices.end()) {
+        // Ground point
+        ground_cloud->push_back(cloud_->at(i));
+      } else {
+        // Non-ground point
+        non_ground_cloud->push_back(cloud_->at(i));
+      }
+    }
+
+    // Convert filtered PointCloud back to PointCloud2 messages
+    sensor_msgs::PointCloud2 ground_msg;
+    pcl::toROSMsg(*ground_cloud, ground_msg);
+    ground_msg.header = msg->header;
+
+    sensor_msgs::PointCloud2 non_ground_msg;
+    pcl::toROSMsg(*non_ground_cloud, non_ground_msg);
+    non_ground_msg.header = msg->header;
+
+    // Publish the ground and non-ground PointCloud2 messages
+    ground_pub_.publish(ground_msg);
+    non_ground_pub_.publish(non_ground_msg);
+    }
+    */
+
+    /*
     // Perform voxel grid downsampling
     voxel_.setInputCloud(cloud_);
     voxel_.filter(*cloud_);
-
+    */
+    
     // Perform statistical outlier removal
     sor_.setInputCloud(cloud_);
     sor_.filter(*cloud_);
@@ -88,6 +139,9 @@ private:
   ros::NodeHandle nh_;
   ros::Subscriber cloud_sub_;
   ros::Publisher processed_pub_;
+
+  // ros::Publisher ground_pub_;
+  // ros::Publisher non_ground_pub_;
 
   float LeafSize;
   int MeanK;

@@ -19,6 +19,8 @@ class msa010Driver:
         self.device = rospy.get_param("msa010_ros_driver/device", "/dev/depth_camera")
         self.frame_id = rospy.get_param("msa010_ros_driver/frame_id", "dep_cam_front_link")
 
+        self.rot_img = rospy.get_param("msa010_ros_driver/rot_img", 0)
+
         self.depth_img_pub = rospy.Publisher("depth/image_raw", Image, queue_size=1)
         self.camera_info_pub = rospy.Publisher("depth/camera_info", CameraInfo, queue_size=1)
 
@@ -47,7 +49,7 @@ class msa010Driver:
 
         self.fx, self.fy, self.u0, self.v0 = self.intrinsicParam(self.ser)
 
-        self.setSettings(self.ser, isp_value=1, binn_value=1, unit_value=0, fps_value=10)
+        self.setSettings(self.ser, isp_value=1, binn_value=1, unit_value=0, fps_value=10, antimmi_value=-1)
         self.printSettings(self.ser)
 
         print("Serial Initialization Completed.")
@@ -202,10 +204,11 @@ class msa010Driver:
 
                     other_content = ser.read(16)
 
-                    image_data = b''  
+                    image_data = ser.read(10000)
 
-                    while len(image_data) < 10000:
-                        image_data += ser.read(10000 - len(image_data))
+                    # image_data = b''  
+                    # while len(image_data) < 10000:
+                    #     image_data += ser.read(10000 - len(image_data))
 
                     check_byte = ser.read(1)
 
@@ -213,8 +216,10 @@ class msa010Driver:
                     # print(end)
 
                     if end == b'\xdd':
-                        image_pixels = np.frombuffer(image_data, dtype=np.uint8)
-                        image_array = np.reshape(image_pixels, (100, 100))
+                        img = np.frombuffer(image_data, dtype=np.uint8)
+                        img = np.reshape(img, (100, 100))
+
+                        img = np.rot90(img, self.rot_img)
 
                         # header 
                         self.header.stamp = rospy.Time.now()
@@ -224,11 +229,11 @@ class msa010Driver:
                         self.camera_info_pub.publish(self.cam_info)
 
                         # depth image 
-                        img_msg = self.bridge.cv2_to_imgmsg(image_array, encoding="8UC1")
+                        img_msg = self.bridge.cv2_to_imgmsg(img, encoding="8UC1")
                         img_msg.header = self.header
                         self.depth_img_pub.publish(img_msg)
 
-                        # image_disp = cv2.resize(image_array, (500, 500))
+                        # image_disp = cv2.resize(img, (500, 500))
                         # self.display_image(image_disp)
 
                         print("publishing:", self.header.seq)

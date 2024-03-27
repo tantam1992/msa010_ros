@@ -39,8 +39,6 @@ class cliffDetector:
         self.tilt_compensation = rospy.get_param("cliff_detector/tilt_compensation", 3)
         self.tilt_compensation = np.deg2rad(self.tilt_compensation)
 
-        self.rot_img = rospy.get_param("cliff_detector/rot_img", 0)
-
         self.kernel = np.ones((3, 3), np.uint8)
 
         self.fx = None
@@ -168,8 +166,6 @@ class cliffDetector:
 
             # convert ROS image message to OpenCV format
             img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-
-            img = np.rot90(img, self.rot_img)
 
             # img_cliff = img.copy()
             img_cliff = np.zeros([100, 100])

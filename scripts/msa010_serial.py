@@ -161,7 +161,7 @@ printSettings(ser)
 
 intrinsicParam(ser)
 
-setSettings(ser, isp_value=1, binn_value=1, unit_value=0, fps_value=10)
+setSettings(ser, isp_value=1, binn_value=1, unit_value=0, fps_value=10, antimmi_value=-1)
 printSettings(ser)
 
 print("Serial Initialization Completed.")
