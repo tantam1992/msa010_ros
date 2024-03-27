@@ -19,8 +19,6 @@ class msa010Driver:
         self.device = rospy.get_param("msa010_ros_driver/device", "/dev/depth_camera")
         self.frame_id = rospy.get_param("msa010_ros_driver/frame_id", "dep_cam_front_link")
 
-        self.rot_img = rospy.get_param("msa010_ros_driver/rot_img", 0)
-
         self.depth_img_pub = rospy.Publisher("depth/image_raw", Image, queue_size=1)
         self.camera_info_pub = rospy.Publisher("depth/camera_info", CameraInfo, queue_size=1)
 
@@ -48,6 +46,7 @@ class msa010Driver:
         self.printSettings(self.ser)
 
         self.fx, self.fy, self.u0, self.v0 = self.intrinsicParam(self.ser)
+        # self.fx, self.fy, self.u0, self.v0 = 75, 75, 50, 50
 
         self.setSettings(self.ser, isp_value=1, binn_value=1, unit_value=0, fps_value=10, antimmi_value=-1)
         self.printSettings(self.ser)
@@ -218,8 +217,6 @@ class msa010Driver:
                     if end == b'\xdd':
                         img = np.frombuffer(image_data, dtype=np.uint8)
                         img = np.reshape(img, (100, 100))
-
-                        img = np.rot90(img, self.rot_img)
 
                         # header 
                         self.header.stamp = rospy.Time.now()
