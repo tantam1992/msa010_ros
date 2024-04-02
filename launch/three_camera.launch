@@ -1,0 +1,139 @@
+<launch>
+	<node pkg="tf" type="static_transform_publisher" name="dep_cam_left_link_to_base_link" 
+		args="0.17 0.12 0.355 0.7010574 -0.092296 0.4777144 0.5213338 base_link dep_cam_left_link 100" />
+
+	<node pkg="tf" type="static_transform_publisher" name="dep_cam_mid_link_to_base_link" 
+		args="0.21 0 0.32 0.6963642 0.1227878 -0.1227878 0.6963642 base_link dep_cam_mid_link 100" />
+
+	<node pkg="tf" type="static_transform_publisher" name="dep_cam_right_link_to_base_link" 
+		args="0.17 -0.12 0.355 0.5213338 -0.4777144 0.092296 0.7010574 base_link dep_cam_right_link 100" />
+
+	<node pkg="tf" type="static_transform_publisher" name="dep_cam_laser_link_to_base_link" 
+		args="0 0 0.355 0 0 0 1 base_link dep_cam_laser_link 100" />
+	
+	<group ns="dep_cam_left">
+		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver">
+			<param name="device" value="/dev/depth_camera_left" />
+			<param name="frame_id" value="dep_cam_left_link" />
+		</node>
+		<node pkg="msa010_ros" type="depth_image_to_point_cloud_node" name="depth_image_to_point_cloud_node" output="screen" />
+		<node pkg="msa010_ros" type="point_cloud_processing_node" name="point_cloud_processing_node">
+			<param name="sub_topic" value="depth/points" />
+			<param name="mode" value="noise" />
+			<param name="LeafSize" value="0.05" />
+			<param name="MeanK" value="20" />
+			<param name="StddevMulThresh" value="1.0" />
+			<param name="RadiusSearch" value="0.1" />
+			<param name="MinNeighborsInRadius" value="5" />
+			<param name="MaxIterations" value="20" />
+			<param name="DistanceThreshold" value="0.05" />
+		</node>
+		<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+	        <remap from="cloud_in" to="processed_point_cloud" />
+	        <remap from="scan" to="depth/scan" />
+	        <param name="target_frame" value="dep_cam_laser_link" />
+	        <param name="transform_tolerance" value="0.01" />
+	        <param name="min_height" value="0.4" />
+	        <param name="max_height" value="1.2" />
+	        <param name="angle_min" value="0.0872665" />
+	        <param name="angle_max" value="1.13446401" />
+	        <param name="angle_increment" value="0.0122173048" />
+	        <param name="scan_time" value="0.1" />
+	        <param name="range_min" value="0.2" />
+	        <param name="range_max" value="2.5" />
+	        <param name="use_inf" value="false" />
+	        <param name="concurrency_level" value="1" />
+		</node>
+	</group>
+
+	<group ns="dep_cam_mid">
+		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver">
+			<param name="device" value="/dev/depth_camera_mid" />
+			<param name="frame_id" value="dep_cam_mid_link" />
+		</node>
+		<node pkg="msa010_ros" type="depth_image_to_point_cloud_node" name="depth_image_to_point_cloud_node" output="screen" />
+		<node pkg="msa010_ros" type="point_cloud_processing_node" name="point_cloud_processing_node">
+			<param name="sub_topic" value="depth/points" />
+			<param name="mode" value="ground" />
+			<param name="LeafSize" value="0.05" />
+			<param name="MeanK" value="20" />
+			<param name="StddevMulThresh" value="1.0" />
+			<param name="RadiusSearch" value="0.1" />
+			<param name="MinNeighborsInRadius" value="5" />
+			<param name="MaxIterations" value="20" />
+			<param name="DistanceThreshold" value="0.05" />
+		</node>
+		<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+	        <remap from="cloud_in" to="non_ground" />
+	        <remap from="scan" to="depth/scan" />
+	        <param name="target_frame" value="dep_cam_laser_link" />
+	        <param name="transform_tolerance" value="0.01" />
+	        <param name="min_height" value="-0.2" />
+	        <param name="max_height" value="0.4" />
+	        <param name="angle_min" value="-0.610865238" />
+	        <param name="angle_max" value="0.610865238" />
+	        <param name="angle_increment" value="0.0122173048" />
+	        <param name="scan_time" value="0.1" />
+	        <param name="range_min" value="0.2" />
+	        <param name="range_max" value="2.5" />
+	        <param name="use_inf" value="false" />
+	        <param name="concurrency_level" value="1" />
+		</node>
+		<!-- <node pkg="msa010_ros" type="cliff_detector.py" name="cliff_detector" output="screen">
+			<param name="img_topic" value="depth/image_raw" />
+			<param name="info_topic" value="depth/camera_info" />
+			<param name="frame_id" value="dep_cam_mid_link" />
+			<param name="cam_height" value="0.32" />
+			<param name="cam_angle" value="20" />
+			<param name="cliff_threshold" value="0.1" />
+			<param name="img_freq" value="10" />
+			<param name="range_min" value="0.2" />
+			<param name="range_max" value="2.5" />
+			<param name="cam_x" value="0.21" />
+			<param name="cam_y" value="0.0" />
+			<param name="cam_z" value="0.32" />
+			<param name="row_upper" value="50" />
+			<param name="col_left" value="10" />
+			<param name="col_right" value="90" />
+			<param name="skip_row_upper" value="1" />
+			<param name="skip_row_bottom" value="1" />
+			<param name="tilt_compensation" value="3" />
+		</node> -->
+	</group>
+
+	<group ns="dep_cam_right">
+		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver">
+			<param name="device" value="/dev/depth_camera_right" />
+			<param name="frame_id" value="dep_cam_right_link" />
+		</node>
+		<node pkg="msa010_ros" type="depth_image_to_point_cloud_node" name="depth_image_to_point_cloud_node" output="screen" />
+		<node pkg="msa010_ros" type="point_cloud_processing_node" name="point_cloud_processing_node">
+			<param name="sub_topic" value="depth/points" />
+			<param name="mode" value="noise" />
+			<param name="LeafSize" value="0.05" />
+			<param name="MeanK" value="20" />
+			<param name="StddevMulThresh" value="1.0" />
+			<param name="RadiusSearch" value="0.1" />
+			<param name="MinNeighborsInRadius" value="5" />
+			<param name="MaxIterations" value="20" />
+			<param name="DistanceThreshold" value="0.05" />
+		</node>
+		<node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+			<remap from="cloud_in" to="processed_point_cloud" />
+	        <remap from="scan" to="depth/scan" />
+	        <param name="target_frame" value="dep_cam_laser_link" />
+	        <param name="transform_tolerance" value="0.01" />
+	        <param name="min_height" value="0.4" />
+	        <param name="max_height" value="1.2" />
+	        <param name="angle_min" value="-1.13446401" />
+	        <param name="angle_max" value="-0.0872665" />
+	        <param name="angle_increment" value="0.0122173048" />
+	        <param name="scan_time" value="0.1" />
+	        <param name="range_min" value="0.2" />
+	        <param name="range_max" value="2.5" />
+	        <param name="use_inf" value="false" />
+	        <param name="concurrency_level" value="1" />
+		</node>
+	</group>
+
+</launch>
