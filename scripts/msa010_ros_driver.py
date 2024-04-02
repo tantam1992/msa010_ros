@@ -40,16 +40,16 @@ class msa010Driver:
         self.ser.open()
 
         print("Connected to Serial: ", self.ser.is_open)
-        # self.printSettings(self.ser)
+        # self.printSettings()
 
-        self.setSettings(self.ser, baud_value=5)
-        self.printSettings(self.ser)
+        self.setSettings(baud_value=5)
+        self.printSettings()
 
-        self.fx, self.fy, self.u0, self.v0 = self.intrinsicParam(self.ser)
+        self.fx, self.fy, self.u0, self.v0 = self.intrinsicParam()
         # self.fx, self.fy, self.u0, self.v0 = 75, 75, 50, 50
 
-        self.setSettings(self.ser, isp_value=1, binn_value=1, unit_value=0, fps_value=10, antimmi_value=-1)
-        self.printSettings(self.ser)
+        self.setSettings(isp_value=1, binn_value=1, unit_value=0, fps_value=10, antimmi_value=-1)
+        self.printSettings()
 
         print("Serial Initialization Completed.")
 
@@ -68,22 +68,23 @@ class msa010Driver:
         self.cam_info.R = [1, 0, 0, 0, 1, 0, 0, 0, 1]
         self.cam_info.P = [self.fx, 0, self.u0, 0, 0, self.fy, self.v0, 0, 0, 0, 1, 0]
 
-        self.setSettings(self.ser, disp_value=4)
+        self.setSettings(disp_value=4)
         
         print("Start Receiving Depth Image.")
 
-        self.msa010Publisher(self.ser)
+        self.msa010Publisher()
 
 
     def closeSerial(self): 
-        self.setSettings(self.ser, disp_value=0)
+        self.setSettings(disp_value=0)
         print("Serial Closing.")
+        self.ser.close()
 
 
-    def intrinsicParam(self, ser):
+    def intrinsicParam(self):
         command = "AT+COEFF?\r"
-        ser.write(command.encode("ASCII"))
-        response = ser.readlines()
+        self.ser.write(command.encode("ASCII"))
+        response = self.ser.readlines()
         print("COEFF Response:", response)
         response_string = b''.join(response).decode()
         response_string = response_string.strip()
@@ -99,34 +100,34 @@ class msa010Driver:
         return fx, fy, u0, v0
 
 
-    def printSettings(self, ser):
+    def printSettings(self):
         command = "AT+ISP?\r"
-        ser.write(command.encode("ASCII"))
-        response = ser.readlines()
+        self.ser.write(command.encode("ASCII"))
+        response = self.ser.readlines()
         print("ISP Response:", response)
         command = "AT+BINN?\r"
-        ser.write(command.encode("ASCII"))
-        response = ser.readlines()
+        self.ser.write(command.encode("ASCII"))
+        response = self.ser.readlines()
         print("BINN Response:", response)
         command = "AT+DISP?\r"
-        ser.write(command.encode("ASCII"))
-        response = ser.readlines()
+        self.ser.write(command.encode("ASCII"))
+        response = self.ser.readlines()
         print("DISP Response:", response)
         command = "AT+BAUD?\r"
-        ser.write(command.encode("ASCII"))
-        response = ser.readlines()
+        self.ser.write(command.encode("ASCII"))
+        response = self.ser.readlines()
         print("BAUD Response:", response)
         command = "AT+UNIT?\r"
-        ser.write(command.encode("ASCII"))
-        response = ser.readlines()
+        self.ser.write(command.encode("ASCII"))
+        response = self.ser.readlines()
         print("UNIT Response:", response)
         command = "AT+FPS?\r"
-        ser.write(command.encode("ASCII"))
-        response = ser.readlines()
+        self.ser.write(command.encode("ASCII"))
+        response = self.ser.readlines()
         print("FPS Response:", response)
         command = "AT+ANTIMMI?\r"
-        ser.write(command.encode("ASCII"))
-        response = ser.readlines()
+        self.ser.write(command.encode("ASCII"))
+        response = self.ser.readlines()
         print("ANTIMMI Response:", response)
         print("------------------------------")
 
@@ -145,44 +146,44 @@ class msa010Driver:
     Return:
         Set parameters through serial
     """
-    def setSettings(self, ser, isp_value=None, binn_value=None, disp_value=None, baud_value=None, 
-                               unit_value=None, fps_value=None, antimmi_value=None):
+    def setSettings(self, isp_value=None, binn_value=None, disp_value=None, baud_value=None, 
+                          unit_value=None, fps_value=None, antimmi_value=None):
         if isp_value is not None: 
             command = "AT+ISP=%1d\r" % isp_value
-            ser.write(command.encode("ASCII"))
-            response = ser.readlines()
+            self.ser.write(command.encode("ASCII"))
+            response = self.ser.readlines()
             print("ISP Response:", response)
         if binn_value is not None: 
             command = "AT+BINN=%1d\r" % binn_value
-            ser.write(command.encode("ASCII"))
-            response = ser.readlines()
+            self.ser.write(command.encode("ASCII"))
+            response = self.ser.readlines()
             print("BINN Response:", response)
         if disp_value is not None: 
             command = "AT+DISP=%1d\r" % disp_value
-            ser.write(command.encode("ASCII"))
+            self.ser.write(command.encode("ASCII"))
             print("Set DISP value as ", disp_value)
-            # response = ser.readlines()
+            # response = self.ser.readlines()
             # print("DISP Response:", response)
         if baud_value is not None: 
             command = "AT+BAUD=%1d\r" % baud_value
-            ser.write(command.encode("ASCII"))
-            ser.baudrate = BAUD[baud_value]         # change the baudrate of the serial 
-            response = ser.readlines()
+            self.ser.write(command.encode("ASCII"))
+            self.ser.baudrate = BAUD[baud_value]         # change the baudrate of the serial 
+            response = self.ser.readlines()
             print("BAUD Response:", response)
         if unit_value is not None: 
             command = "AT+UNIT=%1d\r" % unit_value
-            ser.write(command.encode("ASCII"))
-            response = ser.readlines()
+            self.ser.write(command.encode("ASCII"))
+            response = self.ser.readlines()
             print("UNIT Response:", response)
         if fps_value is not None: 
             command = "AT+FPS=%1d\r" % fps_value
-            ser.write(command.encode("ASCII"))
-            response = ser.readlines()
+            self.ser.write(command.encode("ASCII"))
+            response = self.ser.readlines()
             print("FPS Response:", response)
         if antimmi_value is not None:
             command = "AT+ANTIMMI=%1d\r" % antimmi_value
-            ser.write(command.encode("ASCII"))
-            response = ser.readlines()
+            self.ser.write(command.encode("ASCII"))
+            response = self.ser.readlines()
             print("ANTIMMI Response:", response)
         print("------------------------------")
 
@@ -192,26 +193,22 @@ class msa010Driver:
         cv2.waitKey(1)
 
 
-    def msa010Publisher(self, ser):
+    def msa010Publisher(self):
         while not rospy.is_shutdown():
             try:
-                header = ser.read(2)
+                header = self.ser.read(2)
                 # print(header)
 
                 if header == b'\x00\xff':
-                    packet_length = ser.read(2)
+                    packet_length = self.ser.read(2)
 
-                    other_content = ser.read(16)
+                    other_content = self.ser.read(16)
 
-                    image_data = ser.read(10000)
+                    image_data = self.ser.read(10000)
 
-                    # image_data = b''  
-                    # while len(image_data) < 10000:
-                    #     image_data += ser.read(10000 - len(image_data))
+                    check_byte = self.ser.read(1)
 
-                    check_byte = ser.read(1)
-
-                    end = ser.read(1)
+                    end = self.ser.read(1)
                     # print(end)
 
                     if end == b'\xdd':
@@ -233,16 +230,15 @@ class msa010Driver:
                         # image_disp = cv2.resize(img, (500, 500))
                         # self.display_image(image_disp)
 
-                        print("publishing:", self.header.seq)
+                        # print("publishing:", self.header.seq)
 
             except (serial.SerialException, serial.SerialTimeoutException) as e:
                 print(e)
                 break
 
-        self.setSettings(ser, disp_value=0)
+        self.setSettings(disp_value=0)
         print("Serial Closing.")
-
-        ser.close()
+        self.ser.close()
 
 
 if __name__ == '__main__':
