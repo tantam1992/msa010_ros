@@ -40,8 +40,8 @@
 	        <param name="angle_increment" value="0.0122173048" />
 	        <param name="scan_time" value="0.1" />
 	        <param name="range_min" value="0.2" />
-	        <param name="range_max" value="2.5" />
-	        <param name="use_inf" value="false" />
+	        <param name="range_max" value="3.0" />
+	        <param name="use_inf" value="true" />
 	        <param name="concurrency_level" value="1" />
 		</node>
 	</group>
@@ -75,8 +75,8 @@
 	        <param name="angle_increment" value="0.0122173048" />
 	        <param name="scan_time" value="0.1" />
 	        <param name="range_min" value="0.2" />
-	        <param name="range_max" value="2.5" />
-	        <param name="use_inf" value="false" />
+	        <param name="range_max" value="3.0" />
+	        <param name="use_inf" value="true" />
 	        <param name="concurrency_level" value="1" />
 		</node>
 		<!-- <node pkg="msa010_ros" type="cliff_detector.py" name="cliff_detector" output="screen">
@@ -130,8 +130,8 @@
 	        <param name="angle_increment" value="0.0122173048" />
 	        <param name="scan_time" value="0.1" />
 	        <param name="range_min" value="0.2" />
-	        <param name="range_max" value="2.5" />
-	        <param name="use_inf" value="false" />
+	        <param name="range_max" value="3.0" />
+	        <param name="use_inf" value="true" />
 	        <param name="concurrency_level" value="1" />
 		</node>
 	</group>
