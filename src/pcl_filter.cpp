@@ -21,21 +21,21 @@ public:
   PointCloudProcessor(ros::NodeHandle nh)
     : nh_(nh)
   {
-    nh_.getParam("point_cloud_processing_node/sub_topic", sub_topic);
-    nh_.getParam("point_cloud_processing_node/LeafSize", LeafSize);
-    nh_.getParam("point_cloud_processing_node/MeanK", MeanK);
-    nh_.getParam("point_cloud_processing_node/StddevMulThresh", StddevMulThresh);
-    nh_.getParam("point_cloud_processing_node/RadiusSearch", RadiusSearch);
-    nh_.getParam("point_cloud_processing_node/MinNeighborsInRadius", MinNeighborsInRadius);
+    nh_.param<std::string>("point_cloud_processing_node/sub_topic", sub_topic, "depth/points");
 
-    // Create a subscriber for the PointCloud2 message
-    cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(sub_topic, 1, &PointCloudProcessor::pointCloudCallback, this);
+    nh_.param("point_cloud_processing_node/LeafSize", LeafSize, 0.05);
+    nh_.param("point_cloud_processing_node/MeanK", MeanK, 20);
+    nh_.param("point_cloud_processing_node/StddevMulThresh", StddevMulThresh, 1.0);
+    nh_.param("point_cloud_processing_node/RadiusSearch", RadiusSearch, 0.1);
+    nh_.param("point_cloud_processing_node/MinNeighborsInRadius", MinNeighborsInRadius, 5);
+    nh_.param("point_cloud_processing_node/MaxIterations", MaxIterations, 20);
+    nh_.param("point_cloud_processing_node/DistanceThreshold", DistanceThreshold, 0.01);
 
-    // Create a publisher for the processed PointCloud2 message
-    processed_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("processed_point_cloud", 1);
+    nh_.param<std::string>("point_cloud_processing_node/mode", mode, "noise");
 
-    // ground_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("ground", 1);
-    // non_ground_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("non_ground", 1);
+    // Create parameter server
+    server_cb_ = boost::bind(&PointCloudProcessor::reconfigureCallback, this, _1, _2);
+    server_.setCallback(server_cb_);
 
     // Initialize filters
     voxel_.setLeafSize(LeafSize, LeafSize, LeafSize);
@@ -44,11 +44,32 @@ public:
     ror_.setRadiusSearch(RadiusSearch);
     ror_.setMinNeighborsInRadius(MinNeighborsInRadius);
 
-    server_cb_ = boost::bind(&PointCloudProcessor::reconfigureCallback, this, _1, _2);
-    server_.setCallback(server_cb_);
+    seg_.setOptimizeCoefficients(true);
+    seg_.setModelType(pcl::SACMODEL_PLANE);
+    seg_.setMethodType(pcl::SAC_RANSAC);
+    seg_.setMaxIterations(MaxIterations);
+    seg_.setDistanceThreshold(DistanceThreshold); 
 
     // Initialize the point cloud object
     cloud_.reset(new pcl::PointCloud<pcl::PointXYZ>);
+
+    if (mode == "noise")
+    {
+      cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(sub_topic, 1, &PointCloudProcessor::denoisingCallback, this);
+      processed_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("processed_point_cloud", 1);
+    }
+    else if (mode == "ground") 
+    {
+      ground_cloud_.reset(new pcl::PointCloud<pcl::PointXYZ>);
+      non_ground_cloud_.reset(new pcl::PointCloud<pcl::PointXYZ>);
+      coefficients_.reset(new pcl::ModelCoefficients);
+      inliers_.reset(new pcl::PointIndices);
+
+      cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(sub_topic, 1, &PointCloudProcessor::removeGroundCallback, this);
+      ground_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("ground", 1);
+      non_ground_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("non_ground", 1);
+    }
+
   }
 
 
@@ -59,58 +80,17 @@ public:
     sor_.setStddevMulThresh(config.StddevMulThresh);
     ror_.setRadiusSearch(config.RadiusSearch);
     ror_.setMinNeighborsInRadius(config.MinNeighborsInRadius);
+
+    seg_.setMaxIterations(config.MaxIterations);
+    seg_.setDistanceThreshold(config.DistanceThreshold); 
   }
 
 
-  void pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
+  void denoisingCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     // Convert PointCloud2 message to PCL PointCloud
     pcl::fromROSMsg(*msg, *cloud_);
     pcl::removeNaNFromPointCloud(*cloud_, *cloud_, indices_);
-
-    /*
-    {
-    // Estimate the ground plane model using RANSAC
-    pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
-    pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-    pcl::SACSegmentation<pcl::PointXYZ> seg;
-    seg.setOptimizeCoefficients(true);
-    seg.setModelType(pcl::SACMODEL_PLANE);
-    seg.setMethodType(pcl::SAC_RANSAC);
-    seg.setMaxIterations(50);
-    seg.setDistanceThreshold(0.01); // Set the distance threshold according to your requirements
-    seg.setInputCloud(cloud_);
-    seg.segment(*inliers, *coefficients);
-
-    // Create separate point clouds to store the ground and non-ground points
-    pcl::PointCloud<pcl::PointXYZ>::Ptr ground_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr non_ground_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-
-    // Iterate over each point in the cloud and assign it to the ground or non-ground point cloud
-    for (size_t i = 0; i < cloud_->size(); ++i) {
-      if (std::find(inliers->indices.begin(), inliers->indices.end(), i) != inliers->indices.end()) {
-        // Ground point
-        ground_cloud->push_back(cloud_->at(i));
-      } else {
-        // Non-ground point
-        non_ground_cloud->push_back(cloud_->at(i));
-      }
-    }
-
-    // Convert filtered PointCloud back to PointCloud2 messages
-    sensor_msgs::PointCloud2 ground_msg;
-    pcl::toROSMsg(*ground_cloud, ground_msg);
-    ground_msg.header = msg->header;
-
-    sensor_msgs::PointCloud2 non_ground_msg;
-    pcl::toROSMsg(*non_ground_cloud, non_ground_msg);
-    non_ground_msg.header = msg->header;
-
-    // Publish the ground and non-ground PointCloud2 messages
-    ground_pub_.publish(ground_msg);
-    non_ground_pub_.publish(non_ground_msg);
-    }
-    */
 
     /*
     // Perform voxel grid downsampling
@@ -135,20 +115,65 @@ public:
   }
 
 
+  void removeGroundCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
+  {
+    // Convert PointCloud2 message to PCL PointCloud
+    pcl::fromROSMsg(*msg, *cloud_);
+    pcl::removeNaNFromPointCloud(*cloud_, *cloud_, indices_);
+
+    // Estimate the ground plane model using RANSAC
+    seg_.setInputCloud(cloud_);
+    seg_.segment(*inliers_, *coefficients_);    
+
+    // Iterate over each point in the cloud and assign it to the ground or non-ground point cloud
+    for (size_t i = 0; i < cloud_->size(); ++i) {
+      if (std::find(inliers_->indices.begin(), inliers_->indices.end(), i) != inliers_->indices.end()) {
+        // Ground point
+        ground_cloud_->push_back(cloud_->at(i));
+      } else {
+        // Non-ground point
+        non_ground_cloud_->push_back(cloud_->at(i));
+      }
+    }
+
+    // Perform radius outlier removal
+    ror_.setInputCloud(non_ground_cloud_);
+    ror_.filter(*non_ground_cloud_);
+
+    // Convert filtered PointCloud back to PointCloud2 messages
+    pcl::toROSMsg(*ground_cloud_, ground_msg_);
+    ground_msg_.header = msg->header;
+
+    pcl::toROSMsg(*non_ground_cloud_, non_ground_msg_);
+    non_ground_msg_.header = msg->header;
+
+    // Publish the ground and non-ground PointCloud2 messages
+    ground_pub_.publish(ground_msg_);
+    non_ground_pub_.publish(non_ground_msg_);
+
+    ground_cloud_->clear();
+    non_ground_cloud_->clear();
+  }
+
+
 private:
   ros::NodeHandle nh_;
   ros::Subscriber cloud_sub_;
   ros::Publisher processed_pub_;
 
-  // ros::Publisher ground_pub_;
-  // ros::Publisher non_ground_pub_;
+  ros::Publisher ground_pub_;
+  ros::Publisher non_ground_pub_;
 
-  float LeafSize;
+  double LeafSize;
   int MeanK;
   double StddevMulThresh;
   double RadiusSearch;
   int MinNeighborsInRadius;
+  int MaxIterations;
+  double DistanceThreshold;
+
   string sub_topic;
+  string mode;
 
   std::vector<int> indices_;
 
@@ -156,10 +181,18 @@ private:
   pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor_;
   pcl::RadiusOutlierRemoval<pcl::PointXYZ> ror_;
 
+  pcl::ModelCoefficients::Ptr coefficients_;
+  pcl::PointIndices::Ptr inliers_;
+  pcl::SACSegmentation<pcl::PointXYZ> seg_;
+
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr ground_cloud_;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr non_ground_cloud_;
 
   sensor_msgs::PointCloud2 filtered_msg_;
-
+  sensor_msgs::PointCloud2 ground_msg_;
+  sensor_msgs::PointCloud2 non_ground_msg_;
+  
   dynamic_reconfigure::Server<msa010_ros::PCLFilterConfig> server_;
   dynamic_reconfigure::Server<msa010_ros::PCLFilterConfig>::CallbackType server_cb_;
 };
