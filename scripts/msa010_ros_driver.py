@@ -54,7 +54,6 @@ class msa010Driver:
         print("Serial Initialization Completed.")
 
         self.bridge = CvBridge()
-        self.image_array = np.zeros((100, 100), dtype=np.uint8)
 
         self.header = Header()
         self.header.frame_id = self.frame_id
