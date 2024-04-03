@@ -67,6 +67,11 @@ target_link_libraries(cliff_detector_node
   ${OpenCV_LIBS}
 )
 
+add_executable(laser_scan_filter_node src/laser_scan_filter.cpp)
+target_link_libraries(laser_scan_filter_node
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
