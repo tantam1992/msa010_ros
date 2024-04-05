@@ -39,6 +39,8 @@ class cliffDetector:
         self.tilt_compensation = rospy.get_param("cliff_detector/tilt_compensation", 3)
         self.tilt_compensation = np.deg2rad(self.tilt_compensation)
 
+        self.rot_img = rospy.get_param("cliff_detector/rot_img", 0)
+
         self.kernel = np.ones((3, 3), np.uint8)
 
         self.fx = None
@@ -50,7 +52,7 @@ class cliffDetector:
         self.img_height = 100
         self.img_width = 100
         self.delta_row = np.zeros(100) 
-        self.vertical_fov = np.deg2rad(60)
+        self.vertical_fov = np.deg2rad(70)
         self.horizontal_fov = np.deg2rad(70)
         self.h_fov_min = 0
         self.h_fov_max = 0
@@ -58,29 +60,11 @@ class cliffDetector:
         self.dist_to_ground = np.zeros(100)
         self.dist_to_ground_init = np.zeros(100)
 
-        # ZYX = 0, 35, 0
-        self.trans = np.array([[ 0.8191521, 0.0000000, 0.5735765, self.cam_x], 
+        # ZYX = 0, 20, 0
+        self.trans = np.array([[ 0.9396926, 0.0000000, 0.3420202, self.cam_x], 
                                [ 0.0000000, 1.0000000, 0.0000000, self.cam_y], 
-                               [-0.5735765, 0.0000000, 0.8191521, self.cam_z],
+                               [-0.3420202, 0.0000000, 0.9396926, self.cam_z],
                                [0.0, 0.0, 0.0, 1.0]])
-
-        # ZYX = 0, 15, 0
-        # self.trans = np.array([[ 0.9659258, 0.0000000, 0.2588190, self.cam_x], 
-        #                        [ 0.0000000, 1.0000000, 0.0000000, self.cam_y], 
-        #                        [-0.2588190, 0.0000000, 0.9659258, self.cam_z],
-        #                        [0.0, 0.0, 0.0, 1.0]])
-        
-        # ZYX = 35, 15, 0
-        # self.trans = np.array([[ 0.7912401, -0.5735765, 0.2120122, self.cam_x], 
-        #                        [ 0.5540323,  0.8191521, 0.1484525, self.cam_y], 
-        #                        [-0.2588190,  0.0000000, 0.9659258, self.cam_z],
-        #                        [0.0, 0.0, 0.0, 1.0]])
-
-        # ZYX = -35, 15, 0
-        # self.trans = np.array([[ 0.7912401, 0.5735765, 0.2120122, self.cam_x], 
-        #                        [-0.5540323, 0.8191521,-0.1484525, self.cam_y], 
-        #                        [-0.2588190, 0.0000000, 0.9659258, self.cam_z],
-        #                        [0.0, 0.0, 0.0, 1.0]])
         
         self.tilt_angle = 0
         self.extra_height = 0
@@ -167,6 +151,8 @@ class cliffDetector:
             # convert ROS image message to OpenCV format
             img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
 
+            img = np.rot90(img, self.rot_img)
+
             # img_cliff = img.copy()
             img_cliff = np.zeros([100, 100])
             img_edge = np.zeros([100, 100])
@@ -182,11 +168,6 @@ class cliffDetector:
                             img_cliff[row][col] = 255
                         else:
                             img_cliff[row][col] = 0
-                    # if dst > (self.dist_to_ground[row] + self.cliff_threshold):
-                    #     # and dst > self.range_min and dst < self.range_max:
-                    #     img_cliff[row][col] = 0
-                    # else:
-                    #     img_cliff[row][col] = 255
             
             img_cliff = cv2.dilate(img_cliff, self.kernel, iterations=3)
             img_cliff = cv2.erode(img_cliff, self.kernel, iterations=3)
