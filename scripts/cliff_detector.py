@@ -60,6 +60,7 @@ class cliffDetector:
         self.dist_to_ground = np.zeros(100)
         self.dist_to_ground_init = np.zeros(100)
 
+        # Transformation matrix of depth camera w.r.t. base_link, 
         # ZYX = 0, 20, 0
         self.trans = np.array([[ 0.9396926, 0.0000000, 0.3420202, self.cam_x], 
                                [ 0.0000000, 1.0000000, 0.0000000, self.cam_y], 
@@ -121,7 +122,7 @@ class cliffDetector:
         self.h_fov_min = - self.horizontal_fov * (self.img_width - 1 - self.cx - 0.5) / (self.img_width - 1)
         self.h_fov_max = - self.horizontal_fov * (- self.cx - 0.5) / (self.img_width - 1)
         
-        self.scan_msg.header.frame_id = "dep_cam_laser_link"
+        self.scan_msg.header.frame_id = self.frame_id
         self.scan_msg.angle_min = self.h_fov_min
         self.scan_msg.angle_max = self.h_fov_max
         self.scan_msg.angle_increment = (self.scan_msg.angle_max - self.scan_msg.angle_min) / (self.img_width - 1)
@@ -148,12 +149,10 @@ class cliffDetector:
             else:
                 self.dist_to_ground = self.dist_to_ground_init
 
-            # convert ROS image message to OpenCV format
             img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
 
             img = np.rot90(img, self.rot_img)
 
-            # img_cliff = img.copy()
             img_cliff = np.zeros([100, 100])
             img_edge = np.zeros([100, 100])
 

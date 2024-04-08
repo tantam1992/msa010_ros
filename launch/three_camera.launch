@@ -82,7 +82,7 @@
 		<!-- <node pkg="msa010_ros" type="cliff_detector.py" name="cliff_detector" output="screen">
 			<param name="img_topic" value="depth/image_raw" />
 			<param name="info_topic" value="depth/camera_info" />
-			<param name="frame_id" value="dep_cam_mid_link" />
+			<param name="frame_id" value="dep_cam_laser_link" />
 			<param name="cam_height" value="0.32" />
 			<param name="cam_angle" value="20" />
 			<param name="cliff_threshold" value="0.1" />
