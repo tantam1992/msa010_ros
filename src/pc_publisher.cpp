@@ -41,10 +41,19 @@ public:
 
   void cameraInfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg)
   {
+    // For camera not rotate
+    /*
     fx = msg->K[0];
     fy = msg->K[4];
     u0 = msg->K[2];
     v0 = msg->K[5];
+    */
+
+    // For camera rotate 90deg (clockwise)
+    fx = msg->K[4];
+    fy = msg->K[0];
+    u0 = 100 - msg->K[5];
+    v0 = msg->K[2];
 
     cam_info_flag = true;
 
