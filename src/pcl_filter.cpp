@@ -136,6 +136,10 @@ public:
       }
     }
 
+    // Perform statistical outlier removal
+    sor_.setInputCloud(cloud_);
+    sor_.filter(*cloud_);
+    
     // Perform radius outlier removal
     ror_.setInputCloud(non_ground_cloud_);
     ror_.filter(*non_ground_cloud_);
