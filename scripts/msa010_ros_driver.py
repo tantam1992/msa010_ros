@@ -203,7 +203,7 @@ class msa010Driver:
 
                     other_content = self.ser.read(16)
 
-                    image_data = self.ser.read(10000)
+                    image_data = self.ser.read(self.cam_info.height * self.cam_info.width)
 
                     check_byte = self.ser.read(1)
 
@@ -212,7 +212,7 @@ class msa010Driver:
 
                     if end == b'\xdd':
                         img = np.frombuffer(image_data, dtype=np.uint8)
-                        img = np.reshape(img, (100, 100))
+                        img = np.reshape(img, (self.cam_info.height, self.cam_info.width))
 
                         # header 
                         self.header.stamp = rospy.Time.now()
