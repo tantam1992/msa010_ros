@@ -2,8 +2,8 @@
 	<node pkg="tf" type="static_transform_publisher" name="dep_cam_left_link_to_base_link" 
 		args="0.17 0.12 0.355 0.7010574 -0.092296 0.4777144 0.5213338 base_link dep_cam_left_link 100" />
 
-	<node pkg="tf" type="static_transform_publisher" name="dep_cam_mid_link_to_base_link" 
-		args="0.21 0 0.315 0.6963642 0.1227878 -0.1227878 0.6963642 base_link dep_cam_mid_link 100" />
+	<!-- <node pkg="tf" type="static_transform_publisher" name="dep_cam_mid_link_to_base_link" 
+		args="0.21 0 0.315 0.6963642 0.1227878 -0.1227878 0.6963642 base_link dep_cam_mid_link 100" /> -->
 
 	<node pkg="tf" type="static_transform_publisher" name="dep_cam_right_link_to_base_link" 
 		args="0.17 -0.12 0.355 0.5213338 -0.4777144 0.092296 0.7010574 base_link dep_cam_right_link 100" />
@@ -11,12 +11,12 @@
 	<node pkg="tf" type="static_transform_publisher" name="dep_cam_laser_link_to_base_link" 
 		args="0 0 0.355 0 0 0 1 base_link dep_cam_laser_link 100" />
 	
-	<node pkg="msa010_ros" type="laser_scan_filter_node" name="laser_scan_filter_node" output="screen">
+	<!-- <node pkg="msa010_ros" type="laser_scan_filter_node" name="laser_scan_filter_node" output="screen">
 		<param name="scan_input" value="scan" />
 		<param name="scan_output" value="scan_cutoff" />
 		<param name="range_min" value="0.2" />
 		<param name="range_max" value="3.0" />
-	</node>
+	</node> -->
 
 	<group ns="dep_cam_left">
 		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver">
@@ -53,7 +53,7 @@
 		</node>
 	</group>
 
-	<group ns="dep_cam_mid">
+	<!-- <group ns="dep_cam_mid">
 		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver">
 			<param name="device" value="/dev/depth_camera_mid" />
 			<param name="frame_id" value="dep_cam_mid_link" />
@@ -86,7 +86,7 @@
 	        <param name="use_inf" value="true" />
 	        <param name="concurrency_level" value="1" />
 		</node>
-		<!-- <node pkg="msa010_ros" type="cliff_detector_node" name="cliff_detector" output="screen">
+		<node pkg="msa010_ros" type="cliff_detector_node" name="cliff_detector" output="screen">
 			<param name="img_topic" value="depth/image_raw" />
 			<param name="info_topic" value="depth/camera_info" />
 			<param name="frame_id" value="dep_cam_laser_link" />
@@ -105,8 +105,8 @@
 			<param name="skip_row_upper" value="1" />
 			<param name="skip_row_bottom" value="1" />
 			<param name="tilt_compensation" value="3" />
-		</node> -->
-	</group>
+		</node>
+	</group> -->
 
 	<group ns="dep_cam_right">
 		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver">
