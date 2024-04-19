@@ -44,7 +44,7 @@
 	        <param name="max_height" value="0.845" />
 	        <param name="angle_min" value="0.0872665" />
 	        <param name="angle_max" value="1.13446401" />
-	        <param name="angle_increment" value="0.0244346095" />
+	        <param name="angle_increment" value="0.0122173048" />
 	        <param name="scan_time" value="0.1" />
 	        <param name="range_min" value="0.2" />
 	        <param name="range_max" value="3.0" />
@@ -79,7 +79,7 @@
 	        <param name="max_height" value="0.0" />
 	        <param name="angle_min" value="-0.610865238" />
 	        <param name="angle_max" value="0.610865238" />
-	        <param name="angle_increment" value="0.0244346095" />
+	        <param name="angle_increment" value="0.0122173048" />
 	        <param name="scan_time" value="0.1" />
 	        <param name="range_min" value="0.6" />
 	        <param name="range_max" value="3.0" />
@@ -134,7 +134,7 @@
 	        <param name="max_height" value="0.845" />
 	        <param name="angle_min" value="-1.13446401" />
 	        <param name="angle_max" value="-0.0872665" />
-	        <param name="angle_increment" value="0.0244346095" />
+	        <param name="angle_increment" value="0.0122173048" />
 	        <param name="scan_time" value="0.1" />
 	        <param name="range_min" value="0.2" />
 	        <param name="range_max" value="3.0" />

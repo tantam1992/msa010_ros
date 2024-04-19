@@ -17,11 +17,11 @@ public:
     dep_img_sub_ = nh_.subscribe<sensor_msgs::Image>("depth/image_raw", 1, &pointCloudPublisher::depthImageCallback, this);
     pc_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("depth/points", 1);
 
-    pcmsg.height = 50;
-    pcmsg.width = 50;
+    pcmsg.height = 100;
+    pcmsg.width = 100;
     pcmsg.is_bigendian = false;
     pcmsg.point_step = 12;
-    pcmsg.row_step = pcmsg.point_step * 50;
+    pcmsg.row_step = pcmsg.point_step * 100;
     pcmsg.is_dense = false;
     pcmsg.fields.resize(pcmsg.point_step / 4);
     pcmsg.fields[0].name = "x";
@@ -74,43 +74,15 @@ public:
 
     uint8_t *ptr = pcmsg.data.data();
 
-    int minI, minJ;
-    int data1, data2, data3, data4;
-    int minDataIn2x2;
-
-    for (int j = 0; j < 100; j+=2) {
-      for (int i = 0; i < 100; i+=2) {
-        data1 = (int)msg->data[j * 100 + i];
-        data2 = (int)msg->data[j * 100 + i + 1];
-        data3 = (int)msg->data[(j + 1) * 100 + i];
-        data4 = (int)msg->data[(j + 1) * 100 + i + 1];
-
-        minDataIn2x2 = std::min(std::min(data1, data2), std::min(data3, data4));
-
-        if (minDataIn2x2 == data1) {
-          minI = i;
-          minJ = j;
-        } 
-        else if (minDataIn2x2 == data2) {
-          minI = i + 1;
-          minJ = j;
-        } 
-        else if (minDataIn2x2 == data3) {
-          minI = i;
-          minJ = j + 1;
-        } 
-        else if (minDataIn2x2 == data4) {
-          minI = i + 1;
-          minJ = j + 1;
-        }
-
-        float cx = (((float)minI) - u0) / fx;
-        float cy = (((float)minJ) - v0) / fy;
+    for (int j = 0; j < pcmsg.height; j++) {
+      for (int i = 0; i < pcmsg.width; i++) {
+        float cx = (((float)i) - u0) / fx;
+        float cy = (((float)j) - v0) / fy;
 
         // AT+UNIT = 0, (p/5.1)^2
-        float dst = std::pow(((float)minDataIn2x2 / 5.1), 2) / 1000;
+        float dst = std::pow((((float)msg->data[j * (pcmsg.width) + i]) / 5.1), 2) / 1000;
 
-        if (minDataIn2x2 == 255) {
+        if (((int)msg->data[j * (pcmsg.width) + i]) == 255) {
           float x = std::numeric_limits<float>::infinity();
           float y = std::numeric_limits<float>::infinity();
           float z = std::numeric_limits<float>::infinity();
