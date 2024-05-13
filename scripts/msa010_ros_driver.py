@@ -245,4 +245,4 @@ if __name__ == '__main__':
         rospy.init_node('msa010_driver', anonymous=True)
         msa010_driver = msa010Driver()
     except rospy.ROSInterruptException:
-        msa010_driver.closeSerial()
+        pass
