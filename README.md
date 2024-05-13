@@ -1,5 +1,6 @@
 # msa010_ros
-
+This package contains the ROS driver of MaixSense-A010 Depth Camera, and the related post-processing tools.  
+Fisrt, the depth image is read from the sensor through UART. Then, the depth image is converted into point cloud. After that, the point cloud is filtered to remove the noise. Finally, the [point cloud is converted to laser scan](http://wiki.ros.org/pointcloud_to_laserscan) and add to the costmap.  
 ## PCL Filters 
 ### Input Parameters 
 * **sub_topic:** Input PointCloud2 topic. 
