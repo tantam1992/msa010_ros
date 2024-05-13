@@ -92,26 +92,30 @@ public:
     pcl::fromROSMsg(*msg, *cloud_);
     pcl::removeNaNFromPointCloud(*cloud_, *cloud_, indices_);
 
-    /*
-    // Perform voxel grid downsampling
-    voxel_.setInputCloud(cloud_);
-    voxel_.filter(*cloud_);
-    */
-    
-    // Perform statistical outlier removal
-    sor_.setInputCloud(cloud_);
-    sor_.filter(*cloud_);
+    if(!cloud_->empty())
+    {
+      /*
+      // Perform voxel grid downsampling
+      voxel_.setInputCloud(cloud_);
+      voxel_.filter(*cloud_);
+      */
+      
+      // Perform statistical outlier removal
+      sor_.setInputCloud(cloud_);
+      sor_.filter(*cloud_);
 
-    // Perform radius outlier removal
-    ror_.setInputCloud(cloud_);
-    ror_.filter(*cloud_);
+      // Perform radius outlier removal
+      ror_.setInputCloud(cloud_);
+      ror_.filter(*cloud_);
 
-    // Convert filtered PointCloud back to PointCloud2 message
-    pcl::toROSMsg(*cloud_, filtered_msg_);
-    filtered_msg_.header = msg->header;
+      // Convert filtered PointCloud back to PointCloud2 message
+      pcl::toROSMsg(*cloud_, filtered_msg_);
+      filtered_msg_.header = msg->header;
 
-    // Publish the processed PointCloud2 message
-    processed_pub_.publish(filtered_msg_);
+      // Publish the processed PointCloud2 message
+      processed_pub_.publish(filtered_msg_);
+    }
+
   }
 
 
@@ -121,42 +125,46 @@ public:
     pcl::fromROSMsg(*msg, *cloud_);
     pcl::removeNaNFromPointCloud(*cloud_, *cloud_, indices_);
 
-    // Estimate the ground plane model using RANSAC
-    seg_.setInputCloud(cloud_);
-    seg_.segment(*inliers_, *coefficients_);    
+    if(!cloud_->empty())
+    {
+      // Estimate the ground plane model using RANSAC
+      seg_.setInputCloud(cloud_);
+      seg_.segment(*inliers_, *coefficients_);    
 
-    // Iterate over each point in the cloud and assign it to the ground or non-ground point cloud
-    for (size_t i = 0; i < cloud_->size(); ++i) {
-      if (std::find(inliers_->indices.begin(), inliers_->indices.end(), i) != inliers_->indices.end()) {
-        // Ground point
-        ground_cloud_->push_back(cloud_->at(i));
-      } else {
-        // Non-ground point
-        non_ground_cloud_->push_back(cloud_->at(i));
+      // Iterate over each point in the cloud and assign it to the ground or non-ground point cloud
+      for (size_t i = 0; i < cloud_->size(); ++i) {
+        if (std::find(inliers_->indices.begin(), inliers_->indices.end(), i) != inliers_->indices.end()) {
+          // Ground point
+          ground_cloud_->push_back(cloud_->at(i));
+        } else {
+          // Non-ground point
+          non_ground_cloud_->push_back(cloud_->at(i));
+        }
       }
+
+      // Perform statistical outlier removal
+      sor_.setInputCloud(cloud_);
+      sor_.filter(*cloud_);
+      
+      // Perform radius outlier removal
+      ror_.setInputCloud(non_ground_cloud_);
+      ror_.filter(*non_ground_cloud_);
+
+      // Convert filtered PointCloud back to PointCloud2 messages
+      pcl::toROSMsg(*ground_cloud_, ground_msg_);
+      ground_msg_.header = msg->header;
+
+      pcl::toROSMsg(*non_ground_cloud_, non_ground_msg_);
+      non_ground_msg_.header = msg->header;
+
+      // Publish the ground and non-ground PointCloud2 messages
+      ground_pub_.publish(ground_msg_);
+      non_ground_pub_.publish(non_ground_msg_);
+
+      ground_cloud_->clear();
+      non_ground_cloud_->clear();
     }
-
-    // Perform statistical outlier removal
-    sor_.setInputCloud(cloud_);
-    sor_.filter(*cloud_);
     
-    // Perform radius outlier removal
-    ror_.setInputCloud(non_ground_cloud_);
-    ror_.filter(*non_ground_cloud_);
-
-    // Convert filtered PointCloud back to PointCloud2 messages
-    pcl::toROSMsg(*ground_cloud_, ground_msg_);
-    ground_msg_.header = msg->header;
-
-    pcl::toROSMsg(*non_ground_cloud_, non_ground_msg_);
-    non_ground_msg_.header = msg->header;
-
-    // Publish the ground and non-ground PointCloud2 messages
-    ground_pub_.publish(ground_msg_);
-    non_ground_pub_.publish(non_ground_msg_);
-
-    ground_cloud_->clear();
-    non_ground_cloud_->clear();
   }
 
 
