@@ -166,9 +166,13 @@ class msa010Driver:
         if baud_value is not None: 
             command = "AT+BAUD=%1d\r" % baud_value
             self.ser.write(command.encode("ASCII"))
+            self.ser.close()
             self.ser.baudrate = BAUD[baud_value]         # change the baudrate of the serial 
-            response = self.ser.readlines()
-            print("BAUD Response:", response)
+            self.ser.open()
+            self.ser.reset_input_buffer()
+            print("Set BAUD to:", BAUD[baud_value])
+            # response = self.ser.readlines()
+            # print("BAUD Response:", response)
         if unit_value is not None: 
             command = "AT+UNIT=%1d\r" % unit_value
             self.ser.write(command.encode("ASCII"))
