@@ -40,7 +40,7 @@ class msa010Driver:
         self.ser.open()
 
         print("Connected to Serial: ", self.ser.is_open)
-        # self.printSettings()
+        self.printSettings()
 
         self.setSettings(baud_value=5)
         self.printSettings()
@@ -196,44 +196,65 @@ class msa010Driver:
         cv2.waitKey(1)
 
 
+    def rxPacket(self):
+        rxpacket = []
+        
+        checksum = 0
+        rx_length = 0
+        wait_length = 10022
+        
+        success = False
+
+        while True:
+            rxpacket.extend(self.ser.read(wait_length - rx_length))
+            rx_length = len(rxpacket)
+
+            if rx_length >= wait_length:
+                # find packet header 
+                for idx in range(0, (rx_length - 1)):
+                    if (rxpacket[idx] == 0x00) and (rxpacket[idx + 1] == 0xFF):
+                        break
+                
+                if idx == 0:
+                    # calculate checksum
+                    for byte in rxpacket[:-2]: 
+                        checksum += byte
+                    checksum &= 0xFF
+
+                    # verify checksum and end
+                    if rxpacket[-2] == checksum and rxpacket[-1] == 0xDD:
+                        success = True
+                    else:
+                        success = False 
+                    break
+                else:
+                    del rxpacket[0:idx]
+                    rx_length -= idx
+        
+        return rxpacket, success
+    
+
     def msa010Publisher(self):
         while not rospy.is_shutdown():
             try:
-                header = self.ser.read(2)
-                # print(header)
+                rxpacket, success = self.rxPacket()
+                if success:
+                    img = np.array(rxpacket[20:10020], dtype=np.uint8)
+                    img = np.reshape(img, (self.cam_info.height, self.cam_info.width))
 
-                if header == b'\x00\xff':
-                    packet_length = self.ser.read(2)
+                    # header 
+                    self.header.stamp = rospy.Time.now()
 
-                    other_content = self.ser.read(16)
+                    # camera info
+                    self.cam_info.header = self.header
+                    self.camera_info_pub.publish(self.cam_info)
 
-                    image_data = self.ser.read(self.cam_info.height * self.cam_info.width)
-
-                    check_byte = self.ser.read(1)
-
-                    end = self.ser.read(1)
-                    # print(end)
-
-                    if end == b'\xdd':
-                        img = np.frombuffer(image_data, dtype=np.uint8)
-                        img = np.reshape(img, (self.cam_info.height, self.cam_info.width))
-
-                        # header 
-                        self.header.stamp = rospy.Time.now()
-
-                        # camera info
-                        self.cam_info.header = self.header
-                        self.camera_info_pub.publish(self.cam_info)
-
-                        # depth image 
-                        img_msg = self.bridge.cv2_to_imgmsg(img, encoding="8UC1")
-                        img_msg.header = self.header
-                        self.depth_img_pub.publish(img_msg)
-
-                        # image_disp = cv2.resize(img, (500, 500))
-                        # self.display_image(image_disp)
-
-                        # print("publishing:", self.header.seq)
+                    # depth image 
+                    img_msg = self.bridge.cv2_to_imgmsg(img, encoding="8UC1")
+                    img_msg.header = self.header
+                    self.depth_img_pub.publish(img_msg)
+                else:
+                    rospy.logerr("Failed to receive a complete frame.")
 
             except (serial.SerialException, serial.SerialTimeoutException) as e:
                 print(e)
