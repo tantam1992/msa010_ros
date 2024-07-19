@@ -197,7 +197,7 @@ class msa010Driver:
 
 
     def rxPacket(self):
-        rxpacket = []
+        rxpacket = bytearray()
         
         checksum = 0
         rx_length = 0
@@ -212,7 +212,7 @@ class msa010Driver:
             if rx_length >= wait_length:
                 # find packet header 
                 for idx in range(0, (rx_length - 1)):
-                    if (rxpacket[idx] == 0x00) and (rxpacket[idx + 1] == 0xFF):
+                    if (rxpacket[idx] == 0) and (rxpacket[idx + 1] == 255):
                         break
                 
                 if idx == 0:
@@ -222,7 +222,7 @@ class msa010Driver:
                     checksum &= 0xFF
 
                     # verify checksum and end
-                    if rxpacket[-2] == checksum and rxpacket[-1] == 0xDD:
+                    if rxpacket[-2] == checksum and rxpacket[-1] == 221:
                         success = True
                     else:
                         success = False 
@@ -239,7 +239,7 @@ class msa010Driver:
             try:
                 rxpacket, success = self.rxPacket()
                 if success:
-                    img = np.array(rxpacket[20:10020], dtype=np.uint8)
+                    img = np.frombuffer(rxpacket[20:10020], dtype=np.uint8)
                     img = np.reshape(img, (self.cam_info.height, self.cam_info.width))
 
                     # header 
