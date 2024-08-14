@@ -67,7 +67,7 @@ class msa010Driver:
         self.cam_info.R = [1, 0, 0, 0, 1, 0, 0, 0, 1]
         self.cam_info.P = [self.fx, 0, self.u0, 0, 0, self.fy, self.v0, 0, 0, 0, 1, 0]
 
-        self.setSettings(disp_value=4)
+        self.setSettings(disp_value=2)
         
         print("Start Receiving Depth Image.")
 

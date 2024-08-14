@@ -1,0 +1,85 @@
+<launch>
+	<node pkg="tf" type="static_transform_publisher" name="dep_cam_left_link_to_base_link" 
+		args="0.175 0.04 0.38 -0.701 -0.478 -0.092 0.521 base_link dep_cam_left_link 100" />
+
+	<node pkg="tf" type="static_transform_publisher" name="dep_cam_right_link_to_base_link" 
+		args="0.175 -0.04 0.38 0.701 -0.478 0.092 0.521 base_link dep_cam_right_link 100" />
+	
+	<!-- <node pkg="msa010_ros" type="laser_scan_filter_node" name="laser_scan_filter_node" output="screen">
+		<param name="scan_input" value="scan" />
+		<param name="scan_output" value="scan_cutoff" />
+		<param name="range_min" value="0.2" />
+		<param name="range_max" value="3.0" />
+	</node> -->
+
+	<group ns="dep_cam_left">
+		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver">
+			<param name="device" value="/dev/ttyTOFL" />
+			<param name="frame_id" value="dep_cam_left_link" />
+		</node>
+		<node pkg="msa010_ros" type="depth_image_to_point_cloud_node" name="depth_image_to_point_cloud_node" output="screen" />
+		<node pkg="msa010_ros" type="point_cloud_processing_node" name="point_cloud_processing_node">
+			<param name="sub_topic" value="depth/points" />
+			<param name="mode" value="noise" />
+			<param name="LeafSize" value="0.05" />
+			<param name="MeanK" value="20" />
+			<param name="StddevMulThresh" value="1.0" />
+			<param name="RadiusSearch" value="0.1" />
+			<param name="MinNeighborsInRadius" value="5" />
+			<param name="MaxIterations" value="20" />
+			<param name="DistanceThreshold" value="0.05" />
+		</node>
+		<!-- <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+	        <remap from="cloud_in" to="processed_point_cloud" />
+	        <remap from="scan" to="depth/scan" />
+	        <param name="target_frame" value="dep_cam_laser_link" />
+	        <param name="transform_tolerance" value="0.01" />
+	        <param name="min_height" value="-0.38" />
+	        <param name="max_height" value="0.82" />
+	        <param name="angle_min" value="0.0872665" />
+	        <param name="angle_max" value="1.13446401" />
+	        <param name="angle_increment" value="0.0244346095" />
+	        <param name="scan_time" value="0.1" />
+	        <param name="range_min" value="0.2" />
+	        <param name="range_max" value="3.0" />
+	        <param name="use_inf" value="true" />
+	        <param name="concurrency_level" value="1" />
+		</node> -->
+	</group>
+
+	<group ns="dep_cam_right">
+		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver">
+			<param name="device" value="/dev/ttyTOFR" />
+			<param name="frame_id" value="dep_cam_right_link" />
+		</node>
+		<node pkg="msa010_ros" type="depth_image_to_point_cloud_node" name="depth_image_to_point_cloud_node" output="screen" />
+		<node pkg="msa010_ros" type="point_cloud_processing_node" name="point_cloud_processing_node">
+			<param name="sub_topic" value="depth/points" />
+			<param name="mode" value="noise" />
+			<param name="LeafSize" value="0.05" />
+			<param name="MeanK" value="20" />
+			<param name="StddevMulThresh" value="1.0" />
+			<param name="RadiusSearch" value="0.1" />
+			<param name="MinNeighborsInRadius" value="5" />
+			<param name="MaxIterations" value="20" />
+			<param name="DistanceThreshold" value="0.05" />
+		</node>
+		<!-- <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+			<remap from="cloud_in" to="processed_point_cloud" />
+	        <remap from="scan" to="depth/scan" />
+	        <param name="target_frame" value="dep_cam_laser_link" />
+	        <param name="transform_tolerance" value="0.01" />
+	        <param name="min_height" value="-0.38" />
+	        <param name="max_height" value="0.82" />
+	        <param name="angle_min" value="-1.13446401" />
+	        <param name="angle_max" value="-0.0872665" />
+	        <param name="angle_increment" value="0.0244346095" />
+	        <param name="scan_time" value="0.1" />
+	        <param name="range_min" value="0.2" />
+	        <param name="range_max" value="3.0" />
+	        <param name="use_inf" value="true" />
+	        <param name="concurrency_level" value="1" />
+		</node> -->
+	</group>
+
+</launch>
