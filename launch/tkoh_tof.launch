@@ -1,9 +1,13 @@
 <launch>
+	<!-- <node pkg="tf" type="static_transform_publisher" name="dep_cam_left_link_to_base_link" 
+		args="0.175 0.04 0.38 -0.701 -0.478 -0.092 0.521 base_link dep_cam_left_link 100" /> -->
 	<node pkg="tf" type="static_transform_publisher" name="dep_cam_left_link_to_base_link" 
-		args="0.175 0.04 0.38 -0.701 -0.478 -0.092 0.521 base_link dep_cam_left_link 100" />
+		args="-0.10412 0.35523 0.41992 0.0 0.0 0.9659258 0.2588190 base_link dep_cam_left_link 100" />
 
+	<!-- <node pkg="tf" type="static_transform_publisher" name="dep_cam_right_link_to_base_link" 
+		args="0.175 -0.04 0.38 0.701 -0.478 0.092 0.521 base_link dep_cam_right_link 100" /> -->
 	<node pkg="tf" type="static_transform_publisher" name="dep_cam_right_link_to_base_link" 
-		args="0.175 -0.04 0.38 0.701 -0.478 0.092 0.521 base_link dep_cam_right_link 100" />
+		args="-0.10412 -0.35523 0.41992 -0.0 0.0 0.9659258 -0.2588190 base_link dep_cam_right_link 100" />
 	
 	<!-- <node pkg="msa010_ros" type="laser_scan_filter_node" name="laser_scan_filter_node" output="screen">
 		<param name="scan_input" value="scan" />
