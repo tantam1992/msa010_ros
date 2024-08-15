@@ -17,7 +17,7 @@
 	</node> -->
 
 	<group ns="dep_cam_left">
-		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver">
+		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver" output="screen">
 			<param name="device" value="/dev/ttyTOFL" />
 			<param name="frame_id" value="dep_cam_left_link" />
 		</node>
@@ -52,7 +52,7 @@
 	</group>
 
 	<group ns="dep_cam_right">
-		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver">
+		<node pkg="msa010_ros" type="msa010_ros_driver.py" name="msa010_ros_driver" output="screen">
 			<param name="device" value="/dev/ttyTOFR" />
 			<param name="frame_id" value="dep_cam_right_link" />
 		</node>

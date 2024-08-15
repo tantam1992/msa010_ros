@@ -42,11 +42,11 @@ class msa010Driver:
         print("Connected to Serial: ", self.ser.is_open)
         self.printSettings()
 
-        self.setSettings(baud_value=5)
-        self.printSettings()
+        # self.setSettings(baud_value=5)
+        # self.printSettings()
 
-        self.fx, self.fy, self.u0, self.v0 = self.intrinsicParam()
-        # self.fx, self.fy, self.u0, self.v0 = 75, 75, 50, 50
+        # self.fx, self.fy, self.u0, self.v0 = self.intrinsicParam()
+        self.fx, self.fy, self.u0, self.v0 = 75, 75, 50, 50
 
         self.setSettings(isp_value=1, binn_value=1, unit_value=0, fps_value=10, antimmi_value=-1)
         self.printSettings()
@@ -67,7 +67,7 @@ class msa010Driver:
         self.cam_info.R = [1, 0, 0, 0, 1, 0, 0, 0, 1]
         self.cam_info.P = [self.fx, 0, self.u0, 0, 0, self.fy, self.v0, 0, 0, 0, 1, 0]
 
-        self.setSettings(disp_value=4)
+        self.setSettings(disp_value=2)
         
         print("Start Receiving Depth Image.")
 
