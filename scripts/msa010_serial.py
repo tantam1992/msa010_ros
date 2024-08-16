@@ -138,8 +138,8 @@ def display_image(frame_data):
 
 ser = serial.Serial()
 
-# ser.port = "/dev/ttyTOFL"
-ser.port = "/dev/ttyUSB6"
+# ser.port = "/dev/neuronbotLED"
+ser.port = "/dev/ttyUSB0"
 ser.baudrate = 115200
 ser.bytesize = serial.EIGHTBITS
 ser.parity = serial.PARITY_NONE
@@ -158,7 +158,7 @@ print("Connected to Serial: ", ser.is_open)
 printSettings(ser)
 
 # setSettings(ser, baud_value=5)
-# printSettings(ser)
+printSettings(ser)
 
 intrinsicParam(ser)
 
@@ -167,7 +167,7 @@ printSettings(ser)
 
 print("Serial Initialization Completed.")
 
-setSettings(ser, disp_value=2)
+setSettings(ser, disp_value=4)
 
 print("Start Receiving Depth Image.")
 

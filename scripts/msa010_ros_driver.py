@@ -42,7 +42,7 @@ class msa010Driver:
         print("Connected to Serial: ", self.ser.is_open)
         self.printSettings()
 
-        self.setSettings(baud_value=5)
+        # self.setSettings(baud_value=5)
         self.printSettings()
 
         self.fx, self.fy, self.u0, self.v0 = self.intrinsicParam()
